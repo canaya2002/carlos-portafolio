@@ -18,8 +18,35 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "tailwind.config.js",
+      "postcss.config.js",
     ],
   },
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_"
+        }
+      ],
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-require-imports": "off",
+      "react-hooks/exhaustive-deps": "warn",
+      "@next/next/no-img-element": "error",
+      "prefer-const": "error",
+      "no-var": "error"
+    }
+  },
+  {
+    files: ["*.config.js", "*.config.mjs", "*.config.ts"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+      "import/no-anonymous-default-export": "off"
+    }
+  }
 ];
 
 export default eslintConfig;
