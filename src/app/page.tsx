@@ -28,7 +28,8 @@ import {
   Send,
   User,
   Bot,
-  Globe
+  Globe,
+  FileText
 } from 'lucide-react';
 
 // =================================================================
@@ -56,6 +57,29 @@ interface SkillsData {
   };
 }
 
+interface ProjectItem {
+  title: string;
+  description: string;
+  tech: string[];
+  image_src: string; // Added image source
+}
+
+interface ProjectData {
+  title: string;
+  subtitle: string;
+  featured: {
+    title: string;
+    subtitle: string;
+    description: string;
+    features: string[];
+    tech: string[];
+    buttons: { view: string; code: string; };
+    placeholder_text: string;
+    image_src: string; // Added image source for featured
+  };
+  other: ProjectItem[];
+}
+
 interface PortfolioData {
   [key: string]: {
     [key in Language]: any;
@@ -63,9 +87,12 @@ interface PortfolioData {
   skills: {
     [key in Language]: SkillsData;
   };
+  projects: {
+    [key in Language]: ProjectData;
+  };
 }
 
-// Data corrected and synchronized across both languages (using the previously provided, correct structure)
+// Data corrected and synchronized across both languages
 const portfolioData: PortfolioData = {
   metadata: {
     es: { name: 'Carlos Anaya Ruiz', title: 'Ingeniero en Tecnologías Computacionales', email: 'carlosaremployment@hotmail.com', phone: '+52 55 4416 7974', github: 'https://github.com/CArlos12002', linkedin: 'https://www.linkedin.com/in/carlos-anaya-ruiz-732abb249/', website: 'carlos-portafolio-sigma.vercel.app', location: 'Ciudad de México, México', cv_download: 'Descargar CV', contact_btn: 'Contactar' },
@@ -209,16 +236,19 @@ const portfolioData: PortfolioData = {
         features: [ 'Stack: Next.js + Firebase Serverless', 'Integración con LLMs (GPT-4, Gemini)', 'Autenticación robusta con JWT', 'API de generación de imágenes y video', 'Procesamiento de pagos con Stripe' ],
         tech: ['Next.js', 'Firebase', 'TypeScript', 'GPT-4', 'Gemini', 'Stripe API'],
         buttons: { view: 'Ver Proyecto', code: 'Código' },
-        placeholder_text: 'IA Multiplataforma'
+        placeholder_text: 'IA Multiplataforma',
+        image_src: '/images/noraai.jpg' // <-- ADDED IMAGE SOURCE
       },
       other: [
         {
           title: 'Sistema BI Empresarial', description: 'Sistema completo de Business Intelligence con modelos de datos relacionales y consultas DAX complejas para Master Loyalty Group. Optimización del rendimiento de reportes.',
-          tech: ['Power BI', 'DAX', 'SQL Server', 'Python']
+          tech: ['Power BI', 'DAX', 'SQL Server', 'Python'],
+          image_src: '/images/bi.jpg' // <-- ADDED IMAGE SOURCE
         },
         {
           title: 'Soluciones Full-Stack', description: 'Desarrollo de múltiples soluciones web end-to-end para clientes freelance con APIs RESTful de alto rendimiento y despliegue automatizado en cloud.',
-          tech: ['React', 'Next.js', 'ASP.NET Core', 'Azure']
+          tech: ['React', 'Next.js', 'ASP.NET Core', 'Azure'],
+          image_src: '/images/fullstack.jpg' // <-- ADDED IMAGE SOURCE
         }
       ]
     },
@@ -231,17 +261,20 @@ const portfolioData: PortfolioData = {
         features: [ 'Stack: Next.js + Firebase Serverless', 'LLMs Integration (GPT-4, Gemini)', 'Robust authentication with JWT', 'Image and video generation API', 'Payment processing with Stripe' ],
         tech: ['Next.js', 'Firebase', 'TypeScript', 'GPT-4', 'Gemini', 'Stripe API'],
         buttons: { view: 'View Project', code: 'Code' },
-        placeholder_text: 'Multi-platform AI'
+        placeholder_text: 'Multi-platform AI',
+        image_src: '/images/noraai.jpg' // <-- ADDED IMAGE SOURCE
       }
       ,
       other: [
         {
           title: 'Enterprise BI System', description: 'Complete Business Intelligence system with relational data models and complex DAX queries for Master Loyalty Group. Optimization of report performance.',
-          tech: ['Power BI', 'DAX', 'SQL Server', 'Python']
+          tech: ['Power BI', 'DAX', 'SQL Server', 'Python'],
+          image_src: '/images/bi.jpg' // <-- ADDED IMAGE SOURCE
         },
         {
           title: 'Full-Stack Solutions', description: 'Development of multiple end-to-end web solutions for freelance clients with high-performance RESTful APIs and automated cloud deployment.',
-          tech: ['React', 'Next.js', 'ASP.NET Core', 'Azure']
+          tech: ['React', 'Next.js', 'ASP.NET Core', 'Azure'],
+          image_src: '/images/fullstack.jpg' // <-- ADDED IMAGE SOURCE
         }
       ]
     }
@@ -568,6 +601,77 @@ const ParticleBackground = memo(function ParticleBackground({
 });
 
 // =================================================================
+// CV Download Component (NEW)
+// =================================================================
+
+const CVDownloadButton = memo(function CVDownloadButton({ className }: { className: string }) {
+  const { language, metadata } = useLanguage();
+  const [isOpen, setIsOpen] = useState(false);
+  // FIX: Change Ref type from HTMLButtonElement to HTMLDivElement
+  const buttonRef = useRef<HTMLDivElement>(null); 
+
+  const cvLinks = {
+    es: { text: 'CV en Español (PDF)', link: '/Carlos Anaya Ruiz CV.pdf' },
+    en: { text: 'CV in English (PDF)', link: '/Carlos Anaya Ruiz CVE.pdf' },
+  };
+  
+  const handleDownload = (link: string) => {
+    window.open(link, '_blank');
+    setIsOpen(false);
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Use event.target here, which is safer than checking the ref type
+      if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [buttonRef]);
+
+  return (
+    // The ref is now correctly typed for a div element
+    <div className="relative inline-block" ref={buttonRef}> 
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className={className}
+      >
+        <Download className="w-4 h-4 mr-2 inline" />
+        {metadata.cv_download}
+      </button>
+      
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-56 rounded-xl shadow-2xl bg-black/90 backdrop-blur-lg border border-white/20 z-50 overflow-hidden animate-in-from-top">
+          <div className="p-3">
+            <h4 className="text-xs font-light text-gray-400 mb-2 uppercase border-b border-white/10 pb-2">
+              {language === 'es' ? 'Selecciona Idioma del CV' : 'Select CV Language'}
+            </h4>
+            <button
+              onClick={() => handleDownload(cvLinks.es.link)}
+              className="w-full text-left flex items-center px-4 py-2 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors duration-200 font-light"
+            >
+              <FileText className="w-4 h-4 mr-2 text-purple-400" />
+              {cvLinks.es.text}
+            </button>
+            <button
+              onClick={() => handleDownload(cvLinks.en.link)}
+              className="w-full text-left flex items-center px-4 py-2 text-sm text-white/80 hover:bg-white/10 rounded-lg transition-colors duration-200 font-light"
+            >
+              <FileText className="w-4 h-4 mr-2 text-blue-400" />
+              {cvLinks.en.text}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+
+// =================================================================
 // 2. LAYOUT COMPONENTS
 // =================================================================
 
@@ -663,11 +767,11 @@ const Navigation = memo(function Navigation() {
             <Globe className="w-5 h-5" />
           </button>
 
-          {/* Download CV Button */}
-          <button className="px-6 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-light hover:bg-white/20 transition-all duration-300 hover:shadow-lg hover:shadow-white/10">
-            <Download className="w-4 h-4 mr-2 inline" />
-            {metadata.cv_download}
-          </button>
+          {/* Download CV Button (Component) */}
+          <CVDownloadButton 
+            className="px-6 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-light hover:bg-white/20 transition-all duration-300 hover:shadow-lg hover:shadow-white/10"
+          />
+
           {/* Contact Button */}
           <button 
             onClick={() => scrollToSection(contactId)}
@@ -707,10 +811,12 @@ const Navigation = memo(function Navigation() {
                 <Globe className="w-4 h-4 mr-2 inline" />
                 {language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
               </button>
-              <button className="w-full px-6 py-3 bg-white/10 border border-white/20 rounded-full text-white font-light">
-                <Download className="w-4 h-4 mr-2 inline" />
-                {metadata.cv_download}
-              </button>
+              
+              {/* Mobile CV Download Options */}
+              <CVDownloadButton 
+                className="w-full px-6 py-3 bg-white/10 border border-white/20 rounded-full text-white font-light flex items-center justify-center"
+              />
+              
               <button 
                 onClick={() => scrollToSection(contactId)}
                 className="w-full px-6 py-3 bg-purple-600/80 border border-purple-500/50 rounded-full text-white font-light"
@@ -1046,13 +1152,11 @@ const HeroSection = memo(function HeroSection() {
 
           <AnimateOnScroll className="delay-800">
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 mb-16">
-              <button className="group relative px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-light hover:bg-white/20 hover:border-white/40 transition-all duration-300 overflow-hidden hover:shadow-xl hover:shadow-white/10">
-                <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                <span className="relative flex items-center space-x-3">
-                  <Download className="w-5 h-5 group-hover:animate-vibrate" />
-                  <span>{metadata.cv_download}</span>
-                </span>
-              </button>
+              
+              {/* CV Download Button (Component) */}
+              <CVDownloadButton 
+                className="group relative px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-light hover:bg-white/20 hover:border-white/40 transition-all duration-300 overflow-hidden hover:shadow-xl hover:shadow-white/10"
+              />
               
               {/* Botón de Contactar actualizado */}
               <button 
@@ -1390,7 +1494,7 @@ const SkillsSection = memo(function SkillsSection() {
  */
 const ProjectsSection = memo(function ProjectsSection() {
   const { data } = useLanguage();
-  const projectData = data('projects');
+  const projectData: ProjectData = data('projects'); // Typed as ProjectData
   const featured = projectData.featured || {};
   const other = projectData.other || [];
 
@@ -1508,16 +1612,21 @@ const ProjectsSection = memo(function ProjectsSection() {
                       </div>
                     </div>
 
+                    {/* Image Column for Featured Project */}
                     <div className="relative transform transition-transform duration-500 group-hover:scale-[1.05] group-hover:rotate-1">
                       <div className="w-full h-80 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl overflow-hidden relative shadow-2xl shadow-purple-900/80">
+                        {/* Image component for NORA AI */}
+                        <Image
+                          src={featured.image_src} // Uses the new image_src
+                          alt={featured.title}
+                          fill
+                          sizes="(max-width: 1024px) 100vw, 50vw"
+                          className="object-cover opacity-80 transition-opacity duration-500 group-hover:opacity-100"
+                        />
                         <div className="absolute inset-0 bg-black/20" />
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="text-center text-white">
-                            <Star className="w-16 h-16 mx-auto mb-4 animate-float" />
-                            <h4 className="text-xl font-light" style={{ fontFamily: 'Lastica, -apple-system, BlinkMacSystemFont, sans-serif' }}>
-                              {featured.placeholder_text}
-                            </h4>
-                            <p className="text-sm text-purple-100 mt-2">Web • iOS • Android • macOS • Windows</p>
+                            {/* Removed placeholder text and icons that were replaced by the image */}
                           </div>
                         </div>
                       </div>
@@ -1530,10 +1639,18 @@ const ProjectsSection = memo(function ProjectsSection() {
 
           {/* Other Projects */}
           <div className="grid md:grid-cols-2 gap-8">
-            {other.map((item: any, index: number) => (
+            {other.map((item: ProjectItem, index: number) => (
               <AnimateOnScroll key={index} className={`delay-${(index + 1) * 200}`}>
                 <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 transition-all duration-300 transform hover:-translate-y-2 hover:bg-white/10 hover:border-white/20 hover:shadow-xl shadow-green-700/20">
                   <div className="h-32 bg-gradient-to-br from-green-500/70 to-blue-600/70 rounded-xl mb-6 relative overflow-hidden shadow-lg">
+                    {/* Image component for other projects */}
+                    <Image
+                      src={item.image_src} // Uses the new image_src
+                      alt={item.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className="object-cover opacity-80 transition-opacity duration-500 hover:opacity-100"
+                    />
                     <div className="absolute inset-0 bg-black/20" />
                     <div className="absolute bottom-4 left-4 text-white">
                       <h4 className="font-light text-xl" style={{ fontFamily: 'Lastica, -apple-system, BlinkMacSystemFont, sans-serif' }}>
@@ -1971,6 +2088,13 @@ export default function Home() {
                   opacity: 1;
               }
           }
+          
+          /* Efecto de entrada desde abajo para el ChatBot */
+          @keyframes in-from-bottom {
+              from { transform: translateY(100%); opacity: 0; }
+              to { transform: translateY(0); opacity: 1; }
+          }
+          .animate-in-from-bottom { animation: in-from-bottom 0.3s ease-out; }
           
           /* Estilos base */
           html { scroll-behavior: smooth; }
